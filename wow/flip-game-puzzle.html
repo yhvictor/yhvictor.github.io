@@ -1,0 +1,163 @@
+<html>
+<head>
+    <style>
+.row {
+    display: flex;
+    flex-direction: row;
+}
+.node-toggled {
+    width: 50px;
+    height: 50px;
+    border-style: solid;
+    border-color: dodgerblue;
+    background-color: floralwhite;
+}
+.node {
+    width: 50px;
+    height: 50px;
+    border-style: solid;
+    border-color: dodgerblue;
+    background-color: grey;
+}
+.ans-toggled {
+    width: 50px;
+    height: 50px;
+    border-style: solid;
+    border-color: dodgerblue;
+    background-color: greenyellow;
+}
+.ans {
+    width: 50px;
+    height: 50px;
+    border-style: solid;
+    border-color: dodgerblue;
+    background-color: pink;
+}
+    </style>
+    <script>
+"use strict";
+
+const js = function() {
+    const createArray = function(n) {
+        const array = new Array(n);
+        for (let i = 0; i < n; i++) {
+            array[i] = new Array(n);
+            for (let j = 0; j < n; j++) {
+                array[i][j] = 0;
+            }
+        }
+
+        return array;
+    }
+
+    const n = 5;
+    const values = createArray(n);
+
+    const onLoad = function() {
+        const holder = document.getElementById("holder");
+        for (let i = 0; i < n; i++) {
+            let row = document.createElement("div");
+            row.className = "row";
+            holder.appendChild(row);
+            for (let j = 0; j < n; j++) {
+                let node = document.createElement("div");
+                node.className = "node";
+                row.appendChild(node);
+
+                node.addEventListener("click", function() {
+                    values[i][j] ^= 1;
+                    node.className = values[i][j] ? "node-toggled" : "node";
+                });
+            }
+        }
+    }
+
+    const appendAns = function(index, ans) {
+        const text = document.createTextNode("#" +  index + " answer:");
+        const answer = document.createElement("div");
+        document.getElementById("answers").appendChild(text);
+        document.getElementById("answers").appendChild(answer);
+
+        for (let i = 0; i < n; i++) {
+            let row = document.createElement("div");
+            row.className = "row";
+            answer.appendChild(row);
+            for (let j = 0; j < n; j++) {
+                let node = document.createElement("div");
+                node.className = ans[i][j] ? "ans-toggled" : "ans";
+                row.appendChild(node);
+            }
+        }
+
+    }
+
+    const clearAns = function() {
+        const answers = document.getElementById("answers");
+        answers.innerHTML = "";
+    }
+
+    const calc = function(i, j, ans) {
+        var val = values[i][j] ^ ans[i][j];
+
+        if (i > 0) {
+            val ^= ans[i - 1][j];
+        }
+        if (j > 0) {
+            val ^= ans[i][j - 1];
+        }
+        if (j < n - 1) {
+            val ^= ans[i][j + 1];
+        }
+        return val;
+    }
+
+    const solve = function() {
+        clearAns();
+
+        var index = 0;
+        for (let mask = 0; mask < (1<<n); mask++) {
+            const ans = createArray(n);
+
+            for (let j = 0; j < n; j++) {
+                ans[0][j] = (mask>>j)&1;
+            }
+            for (let i = 1; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    const val = calc(i - 1, j, ans);
+                    ans[i][j] = val;
+                }
+            }
+
+            var isAns = true;
+            for (let j = 0; j < n && isAns; j++) {
+                const val = calc(n - 1, j, ans);
+                isAns = val == 0;
+            }
+
+            if (isAns) {
+                appendAns(++index, ans);
+            }
+        }
+
+        if (index == 0) {
+            console.log("error!");
+        }
+    }
+
+    return {
+        onLoad: onLoad,
+        solve: solve,
+    }
+} ();
+
+    </script>
+</head>
+
+<body onload="js.onLoad()">
+    <div id="holder"></div>
+    <div id="button">
+        <button onclick="js.solve()">Solve</button>
+    </div>
+    <div id="answers"></div>
+</body>
+</html>
