@@ -140,7 +140,8 @@ const js = function() {
         }
 
         if (index == 0) {
-            console.log("error!");
+            const text = document.createTextNode("No answer.");
+            document.getElementById("answers").appendChild(text);
         }
     }
 
