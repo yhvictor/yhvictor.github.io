@@ -72,30 +72,6 @@ const js = function() {
         }
     }
 
-    const appendAns = function(index, ans) {
-        const text = document.createTextNode("Answer #" +  index + ":");
-        const answer = document.createElement("div");
-        document.getElementById("answers").appendChild(text);
-        document.getElementById("answers").appendChild(answer);
-
-        for (let i = 0; i < n; i++) {
-            let row = document.createElement("div");
-            row.className = "row";
-            answer.appendChild(row);
-            for (let j = 0; j < n; j++) {
-                let node = document.createElement("div");
-                node.className = ans[i][j] ? "ans-toggled" : "ans";
-                row.appendChild(node);
-            }
-        }
-
-    }
-
-    const clearAns = function() {
-        const answers = document.getElementById("answers");
-        answers.innerHTML = "";
-    }
-
     const calc = function(i, j, ans) {
         var val = values[i][j] ^ ans[i][j];
 
@@ -111,10 +87,18 @@ const js = function() {
         return val;
     }
 
-    const solve = function() {
-        clearAns();
+    const calcFlip = function(ans) {
+        var flips = 0;
+        for (let i = 0; i < n; i++) {
+            for( let j = 0; j < n; j++) {
+                flips += ans[i][j];
+            }
+        }
+        return flips;
+    }
 
-        var index = 0;
+    const solveImpl = function() {
+        const ansArray = [];
         for (let mask = 0; mask < (1<<n); mask++) {
             const ans = createArray(n);
 
@@ -135,13 +119,52 @@ const js = function() {
             }
 
             if (isAns) {
-                appendAns(++index, ans);
+                ansArray.push({
+                    flips: calcFlip(ans),
+                    array: ans,
+                });
             }
         }
+        
+        return ansArray;
+    }
 
-        if (index == 0) {
+    const appendAns = function(index, ans) {
+        const text = document.createTextNode("Answer #" +  index + " with " + ans.flips + " flips:");
+        const answer = document.createElement("div");
+        document.getElementById("answers").appendChild(text);
+        document.getElementById("answers").appendChild(answer);
+
+        for (let i = 0; i < n; i++) {
+            let row = document.createElement("div");
+            row.className = "row";
+            answer.appendChild(row);
+            for (let j = 0; j < n; j++) {
+                let node = document.createElement("div");
+                node.className = ans.array[i][j] ? "ans-toggled" : "ans";
+                row.appendChild(node);
+            }
+        }
+    }
+
+    const solve = function() {
+        const ansArray = solveImpl();
+
+        const answers = document.getElementById("answers");
+        answers.innerHTML = "";
+        
+        if (ansArray.length == 0) {
             const text = document.createTextNode("No answer.");
-            document.getElementById("answers").appendChild(text);
+            answers.appendChild(text);
+            return;
+        }
+
+        ansArray.sort((a, b) => {
+            return a.flips - b.flips;
+        });
+
+        for (let i = 0; i < ansArray.length; i++) {
+            appendAns(i + 1, ansArray[i]);
         }
     }
 
